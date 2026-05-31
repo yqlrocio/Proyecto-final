@@ -23,8 +23,12 @@ import p6_entorno_operativo.EO3_Pago;
 
 public class Main {
     private static Scanner teclado = new Scanner(System.in);
-    // Ruta compartida del fichero de clientes
+    
+    // RUTAS DE LOS FICHEROS
     private static final String RUTA_FICHERO_CLIENTES = "src/p2_almacenamiento_de_datos/clienteGuardado.txt";
+    private static final String RUTA_FICHERO_TRABAJADORES = "src/p2_almacenamiento_de_datos/trabajadorGuardado.txt";
+    private static final String RUTA_FICHERO_PAGOS = "src/p2_almacenamiento_de_datos/pagoGuardado.txt";
+    private static final String RUTA_FICHERO_INVENTARIO = "src/p2_almacenamiento_de_datos/inventarioGuardado.txt";
 
     public static void main(String[] args) {
         int opPrincipal;
@@ -99,54 +103,37 @@ public class Main {
         menuTipoPedido();
     }
 
-    // =========================================================================
-    // NUEVO MÉTODO: LEER Y MOSTRAR CLIENTES USANDO STREAMS (RÚBRICA OBLIGATORIA)
-    // =========================================================================
     private static void mostrarClientesDelFichero() {
         System.out.println("\n==================================================");
         System.out.println("           LISTADO DE CLIENTES REGISTRADOS        ");
         System.out.println("==================================================");
 
         File fichero = new File(RUTA_FICHERO_CLIENTES);
-
-        // Gestionar si el fichero no existe
         if (!fichero.exists() || fichero.length() == 0) {
             System.out.println("[AVISO] El archivo de datos está vacío o no existe ningún cliente aún.");
             return;
         }
 
         List<EO1_Cliente> listaClientes = new ArrayList<>();
-
         try (BufferedReader lector = new BufferedReader(new FileReader(fichero))) {
             String linea;
             while ((linea = lector.readLine()) != null) {
-                // Separamos los datos por el punto y coma
                 String[] datos = linea.split(";");
                 if (datos.length == 4) {
-                    int id = Integer.parseInt(datos[0]);
-                    String nombre = datos[1];
-                    String tlf = datos[2];
-                    String dir = datos[3];
-                    
-                    // Reconstruimos el objeto temporalmente en memoria
-                    listaClientes.add(new EO1_Cliente(id, nombre, tlf, dir));
+                    listaClientes.add(new EO1_Cliente(Integer.parseInt(datos[0]), datos[1], datos[2], datos[3]));
                 }
             }
-
+            // STREAMS & LAMBDAS
             listaClientes.stream().forEach(cliente -> {
                 System.out.println("ID: " + cliente.getIdCliente() + 
                                    " | Nombre: " + cliente.getNombreCliente() + 
                                    " | Teléfono: " + cliente.getTelefono() + 
                                    " | Dirección: " + cliente.getDireccion());
             });
-            
             System.out.println("--------------------------------------------------");
             System.out.println("Total de clientes registrados: " + listaClientes.size());
-
         } catch (IOException e) {
-            System.out.println("[ERROR CRÍTICO] Error al leer la base de datos de clientes: " + e.getMessage());
-        } catch (NumberFormatException e) {
-            System.out.println("[ERROR FORMATO] El archivo de texto contiene datos corruptos.");
+            System.out.println("[ERROR] Error al leer clientes: " + e.getMessage());
         }
     }
 
@@ -165,48 +152,26 @@ public class Main {
             switch (opTipo) {
                 case 1: 
                     System.out.println("[SISTEMA] Pedido En Restaurante Inicializado.");
-                    
-                    // 1. Creamos un objeto trabajador con el rol de CAMARERO usando tu clase corregida
                     EO2_Trabajador camarero = new EO2_Trabajador(201, "Carlos Gómez", Rol.CAMARERO);
-                    
-                    // 2. Mostramos por pantalla quién atiende al cliente
                     System.out.println("\n==================================================");
                     System.out.println(" -> ATENDIDO POR: " + camarero.getNombreTrabajador() + " (" + camarero.getRol() + ")");
                     System.out.println("==================================================");
-                    
-                    // 3. Opcional: Ejecutamos uno de sus métodos operativos para darle dinamismo
                     camarero.gestionarPedido();
-                    
-                    // Continuamos con la carta
                     menuCartaProductos("Restaurante");
-                    opTipo = 0; // Rompe el bucle al finalizar la transacción
+                    opTipo = 0; 
                     break;
-                    
                 case 2: 
                     System.out.println("[SISTEMA] Pedido Para Llevar Inicializado.");
-                    
-                    // 1. Creamos un objeto trabajador con el rol de COCINERO para preparar el paquete
                     EO2_Trabajador cocinero = new EO2_Trabajador(305, "Xiao Long", Rol.COCINERO);
-                    
-                    // 2. Mostramos quién va a elaborar su comida
                     System.out.println("\n==================================================");
                     System.out.println(" -> CHEF EN COCINA: " + cocinero.getNombreTrabajador() + " (" + cocinero.getRol() + ")");
                     System.out.println("==================================================");
-                    
-                    // 3. Ejecutamos su método de preparar
                     cocinero.prepararPedido();
-                    
-                    // Continuamos con la carta
                     menuCartaProductos("Llevar");
                     opTipo = 0; 
                     break;
-                    
-                case 0: 
-                    System.out.println("Pedido cancelado.");
-                    break;
-                default: 
-                    System.out.println("Opción no válida."); 
-                    break;
+                case 0: System.out.println("Pedido cancelado."); break;
+                default: System.out.println("Opción no válida."); break;
             }
         } while (opTipo != 0);
     }
@@ -271,6 +236,7 @@ public class Main {
             if (pago.procesarPago()) {
                 System.out.println(pago.generarRecibo());
                 System.out.println("¡Pedido completado con éxito!");
+                guardarPagoEnFichero(pago);
             }
         } catch (PagoFallidoException e) { 
             System.out.println("\n[FALLO DE FACTURACIÓN] -> " + e.toString());
@@ -290,7 +256,8 @@ public class Main {
             System.out.println("             GESTIÓN DE TRABAJADOR                ");
             System.out.println("--------------------------------------------------");
             System.out.println("1. Añadir Trabajador");
-            System.out.println("2. Eliminar Trabajador");
+            System.out.println("2. Ver Lista de Trabajadores (Leer Fichero)"); // MODIFICADO
+            System.out.println("3. Eliminar Trabajador");
             System.out.println("0. Volver al Menú Principal");
             System.out.print("Seleccione una opción: ");
             try {
@@ -299,7 +266,8 @@ public class Main {
 
             switch (opTrabajador) {
                 case 1: datosNuevoTrabajador(); break;
-                case 2: System.out.println("[INFO] Lógica para eliminar de trabajadorGuardado.txt"); break;
+                case 2: mostrarTrabajadoresDelFichero(); break; // MODIFICADO
+                case 3: System.out.println("[INFO] Lógica para eliminar de trabajadorGuardado.txt"); break;
                 case 0: break;
                 default: System.out.println("Opción no válida."); break;
             }
@@ -309,7 +277,7 @@ public class Main {
     private static void datosNuevoTrabajador() {
         System.out.println("\n--- Formulario de Nuevo Trabajador ---");
         System.out.print("Introduzca Nombre: ");
-        teclado.nextLine();
+        String nombreTrabajador = teclado.nextLine();
         
         System.out.println("Seleccione el Rol:");
         System.out.println("1. COCINERO");
@@ -317,18 +285,57 @@ public class Main {
         System.out.println("3. REPARTIDOR");
         System.out.println("4. JEFE");
         System.out.print("Opción: ");
+        
+        Rol rolEnum = Rol.CAMARERO;
         String rolSeleccionado = "CAMARERO";
         int opRol = Integer.parseInt(teclado.nextLine());
-        if (opRol == 1) rolSeleccionado = "COCINERO";
-        if (opRol == 3) rolSeleccionado = "REPARTIDOR";
-        if (opRol == 4) rolSeleccionado = "JEFE";
+        if (opRol == 1) { rolSeleccionado = "COCINERO"; rolEnum = Rol.COCINERO; }
+        if (opRol == 3) { rolSeleccionado = "REPARTIDOR"; rolEnum = Rol.REPARTIDOR; }
+        if (opRol == 4) { rolSeleccionado = "JEFE"; rolEnum = Rol.JEFE; }
 
         int idTrabajadorAleatorio = (int) (Math.random() * 9000) + 1000;
         System.out.println("\n[SISTEMA] Trabajador registrado con éxito.");
         System.out.println("ID Asignado: " + idTrabajadorAleatorio + " | Rol: " + rolSeleccionado);
 
+        EO2_Trabajador nuevoEmp = new EO2_Trabajador(idTrabajadorAleatorio, nombreTrabajador, rolEnum);
+        guardarTrabajadorEnFichero(nuevoEmp);
+
         if (rolSeleccionado.equals("JEFE")) {
             menuExclusivoJefe();
+        }
+    }
+
+    // NUEVO MÉTODO: LEER Y MOSTRAR TRABAJADORES CON STREAMS
+    private static void mostrarTrabajadoresDelFichero() {
+        System.out.println("\n==================================================");
+        System.out.println("         LISTADO DE PERSONAL DEL RESTAURANTE      ");
+        System.out.println("==================================================");
+
+        File fichero = new File(RUTA_FICHERO_TRABAJADORES);
+        if (!fichero.exists() || fichero.length() == 0) {
+            System.out.println("[AVISO] No hay ningún trabajador contratado registrado aún.");
+            return;
+        }
+
+        List<EO2_Trabajador> listaEmp = new ArrayList<>();
+        try (BufferedReader lector = new BufferedReader(new FileReader(fichero))) {
+            String linea;
+            while ((linea = lector.readLine()) != null) {
+                String[] datos = linea.split(";");
+                if (datos.length == 3) {
+                    listaEmp.add(new EO2_Trabajador(Integer.parseInt(datos[0]), datos[1], Rol.valueOf(datos[2])));
+                }
+            }
+            // STREAMS & LAMBDAS
+            listaEmp.stream().forEach(emp -> {
+                System.out.println("ID Empleado: " + emp.getIdTrabajador() + 
+                                   " | Nombre: " + emp.getNombreTrabajador() + 
+                                   " | Rol del Puesto: " + emp.getRol());
+            });
+            System.out.println("--------------------------------------------------");
+            System.out.println("Total plantilla activa: " + listaEmp.size());
+        } catch (IOException e) {
+            System.out.println("[ERROR] No se pudo leer el fichero de personal: " + e.getMessage());
         }
     }
 
@@ -339,7 +346,7 @@ public class Main {
             System.out.println("          PANEL DE CONTROL - ROL: JEFE            ");
             System.out.println("==================================================");
             System.out.println("1. Añadir Ingredientes al Inventario");
-            System.out.println("2. Eliminar Ingredientes del Inventario");
+            System.out.println("2. Ver Inventario de Platos (Leer Fichero)"); // MODIFICADO
             System.out.println("3. Añadir Plato (Definir ingredientes necesarios)");
             System.out.println("4. Eliminar Plato del Sistema");
             System.out.println("0. Salir del Panel de Jefe");
@@ -350,13 +357,14 @@ public class Main {
 
             switch (opJefe) {
                 case 1: System.out.println("[Inventario] Incrementando stock de GestionInventario.java..."); break;
-                case 2: System.out.println("[Inventario] Reduciendo existencias del almacén..."); break;
+                case 2: mostrarInventarioDelFichero(); break; // MODIFICADO
                 case 3:
                     System.out.print("Nombre del nuevo plato: ");
                     String nuevoPlato = teclado.nextLine();
                     System.out.print("Cantidad de ingredientes base requeridos: ");
                     int cant = Integer.parseInt(teclado.nextLine());
                     System.out.println("¡Plato [" + nuevoPlato + "] indexado con " + cant + " insumos en la aplicación!");
+                    guardarPlatoEnInventario(nuevoPlato, cant);
                     break;
                 case 4: System.out.println("[Ficheros] Modificando inventarioGuardado.txt para remover plato..."); break;
                 case 0: System.out.println("Saliendo del Panel de Administración."); break;
@@ -365,34 +373,100 @@ public class Main {
         } while (opJefe != 0);
     }
 
+    // NUEVO MÉTODO: LEER Y MOSTRAR INVENTARIO CON STREAMS
+    private static void mostrarInventarioDelFichero() {
+        System.out.println("\n==================================================");
+        System.out.println("         INVENTARIO ACTUAL DE PLATOS / CARTAS     ");
+        System.out.println("==================================================");
+
+        File fichero = new File(RUTA_FICHERO_INVENTARIO);
+        if (!fichero.exists() || fichero.length() == 0) {
+            System.out.println("[AVISO] El almacén está vacío. No hay platos creados por Dirección.");
+            return;
+        }
+
+        List<String> lineasPlatos = new ArrayList<>();
+        try (BufferedReader lector = new BufferedReader(new FileReader(fichero))) {
+            String linea;
+            while ((linea = lector.readLine()) != null) {
+                lineasPlatos.add(linea);
+            }
+            // STREAMS & LAMBDAS
+            lineasPlatos.stream().forEach(lineaPlato -> {
+                String[] datos = lineaPlato.split(";");
+                if (datos.length == 2) {
+                    System.out.println(" -> Plato: " + datos[0] + " | Recursos de Cocina Requeridos: " + datos[1] + " uds.");
+                }
+            });
+            System.out.println("--------------------------------------------------");
+        } catch (IOException e) {
+            System.out.println("[ERROR] No se pudo leer el inventario físico: " + e.getMessage());
+        }
+    }
+
     // =========================================================================
-    // GUARDAR EN FICHERO
+    // MÉTODOS DE ESCRITURA EN FICHEROS TXT
     // =========================================================================
     private static void guardarClienteEnFichero(EO1_Cliente cliente) {
         File fichero = new File(RUTA_FICHERO_CLIENTES);
-        
+        verificarYCrearFichero(fichero);
+        try (BufferedWriter escritor = new BufferedWriter(new FileWriter(fichero, true))) {
+            String lineaCliente = cliente.getIdCliente() + ";" + cliente.getNombreCliente() + ";" + cliente.getTelefono() + ";" + cliente.getDireccion();
+            escritor.write(lineaCliente);
+            escritor.newLine();
+            System.out.println("[FICHEROS] -> Datos guardados en 'clienteGuardado.txt'.");
+        } catch (IOException e) {
+            System.out.println("[ERROR] No se pudo escribir en el archivo de clientes: " + e.getMessage());
+        }
+    }
+
+    private static void guardarTrabajadorEnFichero(EO2_Trabajador empleado) {
+        File fichero = new File(RUTA_FICHERO_TRABAJADORES);
+        verificarYCrearFichero(fichero);
+        try (BufferedWriter escritor = new BufferedWriter(new FileWriter(fichero, true))) {
+            String lineaTrabajador = empleado.getIdTrabajador() + ";" + empleado.getNombreTrabajador() + ";" + empleado.getRol();
+            escritor.write(lineaTrabajador);
+            escritor.newLine();
+            System.out.println("[FICHEROS] -> Trabajador guardado en 'trabajadorGuardado.txt'.");
+        } catch (IOException e) {
+            System.out.println("[ERROR] No se pudo registrar físicamente al trabajador: " + e.getMessage());
+        }
+    }
+
+    private static void guardarPagoEnFichero(EO3_Pago pago) {
+        File fichero = new File(RUTA_FICHERO_PAGOS);
+        verificarYCrearFichero(fichero);
+        try (BufferedWriter escritor = new BufferedWriter(new FileWriter(fichero, true))) {
+            String lineaPago = "ID_PAGO: " + (int)(Math.random()*1000) + " | Detalle: " + pago.generarRecibo().replace("\n", " ");
+            escritor.write(lineaPago);
+            escritor.newLine();
+            System.out.println("[FICHEROS] -> Comprobante fiscal volcado en 'pagoGuardado.txt'.");
+        } catch (IOException e) {
+            System.out.println("[ERROR] Fallo en el volcado de auditoría de pagos: " + e.getMessage());
+        }
+    }
+
+    private static void guardarPlatoEnInventario(String nombrePlato, int ingredientesRequeridos) {
+        File fichero = new File(RUTA_FICHERO_INVENTARIO);
+        verificarYCrearFichero(fichero);
+        try (BufferedWriter escritor = new BufferedWriter(new FileWriter(fichero, true))) {
+            String lineaInventario = nombrePlato + ";" + ingredientesRequeridos;
+            escritor.write(lineaInventario);
+            escritor.newLine();
+            System.out.println("[FICHEROS] -> Receta añadida con éxito en 'inventarioGuardado.txt'.");
+        } catch (IOException e) {
+            System.out.println("[ERROR] No se pudo actualizar el almacén central de datos: " + e.getMessage());
+        }
+    }
+
+    private static void verificarYCrearFichero(File fichero) {
         if (!fichero.exists()) {
             try {
                 fichero.getParentFile().mkdirs();
                 fichero.createNewFile();
             } catch (IOException e) {
-                System.out.println("[ERROR FICH] No se pudo inicializar el archivo físico: " + e.getMessage());
-                return;
+                System.out.println("[ERROR CRÍTICO] Imposible inicializar ruta del sistema de datos: " + e.getMessage());
             }
-        }
-
-        try (BufferedWriter escritor = new BufferedWriter(new FileWriter(fichero, true))) {
-            String lineaCliente = cliente.getIdCliente() + ";" + 
-                                 cliente.getNombreCliente() + ";" + 
-                                 cliente.getTelefono() + ";" + 
-                                 cliente.getDireccion();
-            
-            escritor.write(lineaCliente);
-            escritor.newLine();
-            System.out.println("[FICHEROS] -> Cliente volcado con éxito en 'clienteGuardado.txt'.");
-            
-        } catch (IOException e) {
-            System.out.println("[ERROR CRÍTICO] Imposible escribir en el archivo de base de datos: " + e.getMessage());
         }
     }
 }
