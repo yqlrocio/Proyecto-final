@@ -1,15 +1,14 @@
 package p6_entorno_operativo;
 
+
+/**
+ * Gestiona las transacciones monetarias de los pedidos del restaurante.
+ * Se encarga de procesar el cobro, validar que la transacción sea correcta
+ * y emitir los recibos correspondientes.
+ */
+
 public class EO3_Pago {
 	
-	package entorno_operativo;
-
-	/**
-	 * Gestiona las transacciones monetarias de los pedidos del restaurante.
-	 * Se encarga de procesar el cobro, validar que la transacción sea correcta
-	 * y emitir los recibos correspondientes.
-	 */
-	public class Pago {
 	    
 	    private int idPago;
 	    private double cuenta;
@@ -17,11 +16,11 @@ public class EO3_Pago {
 
 	    /**
 	     * Constructor completo para generar un registro de Pago.
-	     * * @param idPago El identificador único de la transacción.
+	     * @param idPago El identificador único de la transacción.
 	     * @param cuenta El importe total a cobrar.
 	     * @param metodo El medio de pago elegido.
 	     */
-	    public Pago(int idPago, double cuenta, String metodo) {
+	    public EO3_Pago (int idPago, double cuenta, String metodo) {
 	        this.idPago = idPago;
 	        this.cuenta = cuenta;
 	        this.metodo = metodo;
@@ -75,7 +74,6 @@ public class EO3_Pago {
 	    public double getCuenta() { 
 	    	return cuenta; 
 	    	}
-	    }
 
 	    /**
 	     * Obtiene el método de pago de la transacción.

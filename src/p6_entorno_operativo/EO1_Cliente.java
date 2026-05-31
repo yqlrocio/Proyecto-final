@@ -1,4 +1,4 @@
-package entorno_operativo;
+package p6_entorno_operativo;
 
 /**
  * Representa a un cliente del restaurante.
@@ -10,21 +10,21 @@ public class EO1_Cliente {
     // Atributos privados según UML
     private int idCliente;
     private String nombreCliente;
-    private String telephone; // (Nota: en UML pusiste 'telefono', adaptado aquí)
+    private String telefono; 
     private String direccion;
 
     // Constructor
     /**
      * Constructor completo para crear un nuevo Cliente.
-     * * @param idCliente     El identificador único.
+     * @param idCliente     El identificador único.
      * @param nombreCliente El nombre del cliente.
      * @param telefono      El teléfono de contacto.
      * @param direccion     La dirección de domicilio.
      */
-    public Cliente(int idCliente, String nombreCliente, String telephone, String direccion) {
+    public EO1_Cliente(int idCliente, String nombreCliente, String telefono, String direccion) {
         this.idCliente = idCliente;
         this.nombreCliente = nombreCliente;
-        this.telephone = telephone;
+        this.telefono = telefono;
         this.direccion = direccion;
     }
 
@@ -47,7 +47,7 @@ public class EO1_Cliente {
     // Métodos Getters y Setters (Opcionales pero recomendados)
     public int getIdCliente() { return idCliente; }
     public String getNombreCliente() { return nombreCliente; }
-    public String getTelephone() { return telephone; }
+    public String getTelefono() { return telefono; }
     public String getDireccion() { return direccion; }
 
     /**
@@ -59,7 +59,7 @@ public class EO1_Cliente {
         return "Cliente{" +
                 "idCliente=" + idCliente +
                 ", nombreCliente='" + nombreCliente + '\'' +
-                ", telefono='" + telephone + '\'' +
+                ", telefono='" + telefono + '\'' +
                 ", direccion='" + direccion + '\'' +
                 '}';
     }

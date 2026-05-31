@@ -10,5 +10,6 @@ package p6_entorno_operativo;
 	    COCINERO,
 	    CAMARERO,
 	    REPARTIDOR,
-	    GERENTE
+	    JEFE
 	}
+}
